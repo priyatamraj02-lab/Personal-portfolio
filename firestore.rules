@@ -1,0 +1,70 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Only your admin account can modify portfolio data
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "priyatamraj02@gmail.com";
+    }
+
+    // Public portfolio data
+    match /profiles/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /projects/{projectId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /skills/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /experience/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /education/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /certifications/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /achievements/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /githubRepositories/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Contact messages
+    match /messages/{messageId} {
+      // Anyone can submit a valid contact message
+      allow create: if request.resource.data.name is string
+        && request.resource.data.email is string
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 10;
+
+      // Only admin can view/manage messages
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

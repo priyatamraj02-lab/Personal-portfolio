@@ -1,0 +1,48 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isPdf() {
+      return request.resource.contentType == 'application/pdf';
+    }
+
+    function isUnderLimit(maxSizeMb) {
+      return request.resource.size < maxSizeMb * 1024 * 1024;
+    }
+
+    // Public can read uploaded media (thumbnails, screenshots, resumes)
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+
+    // Authenticated admin can upload images (under 5MB)
+    match /profile/{fileName} {
+      allow write: if isAuthenticated() && isImage() && isUnderLimit(5);
+    }
+
+    match /projects/{fileName} {
+      allow write: if isAuthenticated() && isImage() && isUnderLimit(8);
+    }
+
+    match /certificates/{fileName} {
+      allow write: if isAuthenticated() && isImage() && isUnderLimit(5);
+    }
+
+    match /achievements/{fileName} {
+      allow write: if isAuthenticated() && isImage() && isUnderLimit(5);
+    }
+
+    // Resume PDF uploads (under 10MB)
+    match /resume/{fileName} {
+      allow write: if isAuthenticated() && isPdf() && isUnderLimit(10);
+    }
+  }
+}
