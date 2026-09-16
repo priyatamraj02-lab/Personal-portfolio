@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Settings, Save, Database, ShieldCheck, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings, Save, Database, ShieldCheck } from 'lucide-react';
 import { apiService } from '../../services/apiService';
 import { SiteSettings } from '../../types/settings';
-import { initialSettings } from '../../data/initialSettings';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { AdminHeader } from '../../components/admin/AdminHeader';
@@ -13,25 +12,39 @@ import { Textarea } from '../../components/ui/Textarea';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 
+const defaultSettings: SiteSettings = {
+  id: 'default',
+  siteTitle: 'Priyatam Raj | Data Science & Machine Learning Portfolio',
+  siteDescription: 'Personal portfolio of Priyatam Raj - Data Science, Machine Learning, Deep Learning, and Generative AI practitioner.',
+  metaKeywords: ['Priyatam Raj', 'Data Science', 'Machine Learning', 'Deep Learning', 'Generative AI', 'Computer Vision'],
+  githubUsername: 'priyatamraj',
+  footerQuote: 'Transforming mathematical equations into autonomous intelligence.',
+  enableContactForm: true,
+  showAvailabilityBadge: true,
+  availabilityText: 'Open to Opportunities',
+  updatedAt: new Date().toISOString()
+};
+
 export const AdminSettingsPage: React.FC = () => {
   const { toggleSidebar } = useOutletContext<{ toggleSidebar: () => void }>();
   const { isFirebaseConfigured } = useAuth();
   const { success, error: toastError } = useToast();
 
-  const [settings, setSettings] = useState<SiteSettings>(initialSettings);
+  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
   const [keywordsInput, setKeywordsInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const data = await apiService.getSettings();
-        setSettings(data);
-        setKeywordsInput(data.metaKeywords?.join(', ') || '');
+        if (data) {
+          setSettings({ ...defaultSettings, ...data });
+          setKeywordsInput(data.metaKeywords?.join(', ') || '');
+        }
       } catch (err) {
-        console.error('Error fetching settings', err);
+        console.error('Error fetching settings from Firestore', err);
       } finally {
         setLoading(false);
       }
@@ -51,27 +64,11 @@ export const AdminSettingsPage: React.FC = () => {
 
     try {
       await apiService.updateSettings(payload);
-      success('Settings Saved', 'Site configuration has been updated.');
+      success('Settings Saved', 'Site configuration has been updated in Firestore.');
     } catch (err: any) {
       toastError('Save Error', err?.message);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    try {
-      const res = await apiService.seedInitialDataToFirestore();
-      if (res.success) {
-        success('Seed Completed', res.message);
-      } else {
-        toastError('Seed Failed', res.message);
-      }
-    } catch (err: any) {
-      toastError('Seed Error', err?.message);
-    } finally {
-      setSeeding(false);
     }
   };
 
@@ -80,48 +77,28 @@ export const AdminSettingsPage: React.FC = () => {
       <AdminHeader
         onToggleSidebar={toggleSidebar}
         title="System & Site Settings"
-        subtitle="Configure SEO metadata, database connection status, and one-click cloud seeder"
+        subtitle="Configure SEO metadata, database status, and public feature toggles"
       />
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl">
-        {/* Firebase Cloud Seeder Card */}
-        <Card glass className="p-6 space-y-4 border-primary/40 bg-gradient-to-r from-primary/5 via-card to-cyan-500/5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-primary/10 text-primary">
-              <Database className="w-6 h-6" />
+        {/* Firestore Connection Card */}
+        <Card glass className="p-6 space-y-2 border-primary/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database className="w-5 h-5 text-primary" />
+              <h3 className="font-display font-bold text-base text-foreground">
+                Database Engine
+              </h3>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-base text-foreground">
-                  One-Click Database Seeder
-                </h3>
-                {isFirebaseConfigured ? (
-                  <Badge variant="success" size="sm">Firebase Connected</Badge>
-                ) : (
-                  <Badge variant="warning" size="sm">Local Sandbox Mode</Badge>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Populate Firestore with all initial showcase projects, skills catalog, profile, and education with a single click.
-              </p>
-            </div>
+            {isFirebaseConfigured ? (
+              <Badge variant="success" size="sm">Firebase Firestore Live</Badge>
+            ) : (
+              <Badge variant="warning" size="sm">Connecting...</Badge>
+            )}
           </div>
-
-          <div className="pt-2 border-t border-border flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              Includes 5 full project case studies & 29 categorized skills.
-            </span>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={handleSeed}
-              loading={seeding}
-              icon={<Sparkles className="w-4 h-4" />}
-            >
-              Seed All Initial Data
-            </Button>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            All portfolio content is read and managed directly through your live Firebase Firestore database.
+          </p>
         </Card>
 
         {/* SEO & Site Config Form */}
@@ -198,7 +175,7 @@ export const AdminSettingsPage: React.FC = () => {
                   onChange={(e) => setSettings({ ...settings, showAvailabilityBadge: e.target.checked })}
                   className="rounded text-primary focus:ring-primary"
                 />
-                <span>Show "Open to Opportunities" Pulsing Badge in Hero</span>
+                <span>Show Availability Status Badge in Hero</span>
               </label>
             </div>
           </Card>

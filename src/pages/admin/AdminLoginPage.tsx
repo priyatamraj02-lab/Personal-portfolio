@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Input } from '../../components/ui/Input';
@@ -48,12 +48,6 @@ export const AdminLoginPage: React.FC = () => {
     }
   };
 
-  const handleFillDemoCreds = () => {
-    setEmail('admin@priyatamraj.dev');
-    setPassword('admin123');
-    setErrorMsg('');
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       {/* Glow background */}
@@ -91,7 +85,7 @@ export const AdminLoginPage: React.FC = () => {
             {isFirebaseConfigured ? (
               <Badge variant="success" size="sm">Firebase Authentication</Badge>
             ) : (
-              <Badge variant="warning" size="sm">Local Sandbox Mode</Badge>
+              <Badge variant="warning" size="sm">Connecting...</Badge>
             )}
           </div>
 
@@ -135,23 +129,6 @@ export const AdminLoginPage: React.FC = () => {
               Sign In to CMS
             </Button>
           </form>
-
-          {/* Quick Demo Helper */}
-          <div className="pt-2 border-t border-border text-center space-y-2">
-            <p className="text-[11px] text-muted-foreground">
-              Testing locally without Firebase configured?
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleFillDemoCreds}
-              className="w-full text-xs"
-              icon={<Sparkles className="w-3.5 h-3.5 text-amber-400" />}
-            >
-              Fill Demo Credentials (admin@priyatamraj.dev)
-            </Button>
-          </div>
         </Card>
       </div>
     </div>

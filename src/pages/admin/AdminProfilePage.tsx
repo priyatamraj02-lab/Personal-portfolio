@@ -3,7 +3,6 @@ import { useOutletContext } from 'react-router-dom';
 import { Save, User, Sparkles } from 'lucide-react';
 import { apiService } from '../../services/apiService';
 import { Profile } from '../../types/profile';
-import { initialProfile } from '../../data/initialProfile';
 import { useToast } from '../../context/ToastContext';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { Input } from '../../components/ui/Input';
@@ -13,11 +12,31 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { ImageUpload } from '../../components/admin/ImageUpload';
 
+const emptyProfile: Profile = {
+  id: 'default',
+  name: '',
+  headline: '',
+  bio: '',
+  aboutText: ['', '', ''],
+  currentFocus: '',
+  learningFocus: '',
+  careerGoals: '',
+  location: '',
+  email: '',
+  phone: '',
+  githubUrl: '',
+  linkedinUrl: '',
+  resumeUrl: '',
+  profileImage: '',
+  availability: 'Open to Opportunities',
+  yearsOfExperience: ''
+};
+
 export const AdminProfilePage: React.FC = () => {
   const { toggleSidebar } = useOutletContext<{ toggleSidebar: () => void }>();
   const { success, error: toastError } = useToast();
 
-  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -25,9 +44,15 @@ export const AdminProfilePage: React.FC = () => {
     const fetchProfile = async () => {
       try {
         const data = await apiService.getProfile();
-        setProfile(data);
+        if (data) {
+          setProfile({
+            ...emptyProfile,
+            ...data,
+            aboutText: data.aboutText?.length ? data.aboutText : ['', '', '']
+          });
+        }
       } catch (err) {
-        console.error('Error fetching profile', err);
+        console.error('Error fetching profile from Firestore', err);
       } finally {
         setLoading(false);
       }
@@ -40,7 +65,7 @@ export const AdminProfilePage: React.FC = () => {
     setSaving(true);
     try {
       await apiService.updateProfile(profile);
-      success('Profile Updated', 'Changes are now live on your portfolio.');
+      success('Profile Updated', 'Changes are saved directly to Firestore.');
     } catch (err: any) {
       toastError('Save Failed', err?.message);
     } finally {
@@ -53,7 +78,7 @@ export const AdminProfilePage: React.FC = () => {
       <AdminHeader
         onToggleSidebar={toggleSidebar}
         title="Edit Profile Information"
-        subtitle="Update name, headline, bio, about story, and contact coordinates"
+        subtitle="Update name, headline, bio, about story, and contact coordinates in Firestore"
       />
 
       <main className="p-4 sm:p-6 lg:p-8 max-w-4xl space-y-8">
@@ -104,6 +129,12 @@ export const AdminProfilePage: React.FC = () => {
                 onChange={(e) => setProfile({ ...profile, location: e.target.value })}
               />
             </div>
+
+            <Input
+              label="Experience / Academic Badge Text (e.g. Centurion University 2024–2028)"
+              value={profile.yearsOfExperience || ''}
+              onChange={(e) => setProfile({ ...profile, yearsOfExperience: e.target.value })}
+            />
 
             <Textarea
               label="Short Bio (Hero Section) *"

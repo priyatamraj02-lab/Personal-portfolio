@@ -31,7 +31,7 @@ if (isFirebaseConfigured) {
     db = getFirestore(app);
     storage = getStorage(app);
   } catch (error) {
-    console.warn("Firebase initialization warning (falling back to local data store):", error);
+    console.warn("Firebase initialization error:", error);
   }
 }
 

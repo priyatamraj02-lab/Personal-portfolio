@@ -19,13 +19,13 @@ import { Project } from '../../types/project';
 import { Skill } from '../../types/skill';
 import { Education } from '../../types/education';
 import { Experience } from '../../types/experience';
-import { initialProfile } from '../../data/initialProfile';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 export const ResumePage: React.FC = () => {
-  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [education, setEducation] = useState<Education[]>([]);
@@ -48,7 +48,7 @@ export const ResumePage: React.FC = () => {
         setEducation(edu);
         setExperience(exp);
       } catch (err) {
-        console.error('Error fetching resume data', err);
+        console.error('Error fetching resume data from Firestore', err);
       } finally {
         setLoading(false);
       }
@@ -59,6 +59,32 @@ export const ResumePage: React.FC = () => {
   const handlePrint = () => {
     window.print();
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12 space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <Card glass className="p-12 space-y-4">
+          <User className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h2 className="text-xl font-bold">Resume Profile Not Found</h2>
+          <p className="text-xs text-muted-foreground">
+            No profile data exists in Firestore. Please add your profile in the Admin Panel.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Group skills by category for dynamic matrix
+  const skillCategories = Array.from(new Set(skills.map((s) => s.category)));
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -109,106 +135,114 @@ export const ResumePage: React.FC = () => {
               </p>
             </div>
             <div className="flex flex-col sm:items-end text-xs text-muted-foreground font-mono space-y-1">
-              <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-primary" /> {profile.email}</span>
-              <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" /> {profile.location}</span>
+              {profile.email && (
+                <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-primary" /> {profile.email}</span>
+              )}
+              {profile.location && (
+                <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" /> {profile.location}</span>
+              )}
             </div>
           </div>
 
           <div className="flex flex-wrap gap-4 pt-1 text-xs text-muted-foreground font-mono">
-            <a href={profile.githubUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary underline flex items-center gap-1">
-              <Github className="w-3.5 h-3.5" /> github.com/priyatamraj
-            </a>
-            <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary underline flex items-center gap-1">
-              <Linkedin className="w-3.5 h-3.5" /> linkedin.com/in/priyatamraj
-            </a>
+            {profile.githubUrl && (
+              <a href={profile.githubUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary underline flex items-center gap-1">
+                <Github className="w-3.5 h-3.5" /> {profile.githubUrl.replace(/^https?:\/\//, '')}
+              </a>
+            )}
+            {profile.linkedinUrl && (
+              <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary underline flex items-center gap-1">
+                <Linkedin className="w-3.5 h-3.5" /> {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+              </a>
+            )}
           </div>
         </div>
 
         {/* Professional Summary */}
-        <div className="space-y-2">
-          <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
-            Executive Summary
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            {profile.bio}
-          </p>
-        </div>
+        {profile.bio && (
+          <div className="space-y-2">
+            <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
+              Executive Summary
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              {profile.bio}
+            </p>
+          </div>
+        )}
 
         {/* Technical Skills Matrix */}
-        <div className="space-y-3">
-          <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
-            Technical Competencies
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div>
-              <span className="font-bold text-foreground block">Languages & Programming:</span>
-              <span className="text-muted-foreground">Python (Advanced), SQL, C/C++</span>
-            </div>
-            <div>
-              <span className="font-bold text-foreground block">Machine Learning:</span>
-              <span className="text-muted-foreground">Scikit-learn, XGBoost, LightGBM, Regression, Trees, SVM</span>
-            </div>
-            <div>
-              <span className="font-bold text-foreground block">Deep Learning & Vision:</span>
-              <span className="text-muted-foreground">PyTorch, YOLOv8, OpenCV, CNNs, Transfer Learning</span>
-            </div>
-            <div>
-              <span className="font-bold text-foreground block">Generative AI & LLMs:</span>
-              <span className="text-muted-foreground">RAG, Gemini API, ChromaDB, LangChain, Prompt Engineering</span>
-            </div>
-            <div>
-              <span className="font-bold text-foreground block">Data Analysis & EDA:</span>
-              <span className="text-muted-foreground">Pandas, NumPy, Matplotlib, Seaborn, Feature Engineering</span>
-            </div>
-            <div>
-              <span className="font-bold text-foreground block">Tools & Frameworks:</span>
-              <span className="text-muted-foreground">FastAPI, Flask, Streamlit, Git, GitHub, VS Code, Firebase</span>
+        {skillCategories.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
+              Technical Competencies
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {skillCategories.map((cat) => {
+                const catSkills = skills
+                  .filter((s) => s.category === cat)
+                  .map((s) => s.name)
+                  .join(', ');
+                return (
+                  <div key={cat}>
+                    <span className="font-bold text-foreground block">{cat}:</span>
+                    <span className="text-muted-foreground">{catSkills}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Education */}
-        <div className="space-y-4">
-          <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
-            Education
-          </h3>
-          {education.map((edu) => (
-            <div key={edu.id} className="space-y-1">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs">
-                <span className="font-bold text-foreground text-sm">{edu.degree}</span>
-                <span className="font-mono text-muted-foreground">{edu.startYear} – {edu.endYear}</span>
-              </div>
-              <p className="text-xs font-semibold text-primary">{edu.institution} | {edu.location}</p>
-              <p className="text-xs text-muted-foreground mt-1">{edu.description}</p>
-              <p className="text-xs text-muted-foreground pt-1">
-                <span className="font-semibold text-foreground">Relevant Coursework: </span>
-                {edu.relevantCoursework.join(', ')}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Key Featured Projects */}
-        <div className="space-y-4">
-          <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
-            Selected Technical Projects
-          </h3>
+        {education.length > 0 && (
           <div className="space-y-4">
-            {projects.slice(0, 4).map((proj) => (
-              <div key={proj.id || proj.slug} className="space-y-1 text-xs">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                  <span className="font-bold text-foreground text-sm">{proj.title}</span>
-                  <span className="font-mono text-primary">{proj.category}</span>
+            <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
+              Education
+            </h3>
+            {education.map((edu) => (
+              <div key={edu.id} className="space-y-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs">
+                  <span className="font-bold text-foreground text-sm">{edu.degree}</span>
+                  <span className="font-mono text-muted-foreground">{edu.startYear} – {edu.endYear}</span>
                 </div>
-                <p className="text-muted-foreground">{proj.description}</p>
-                <div className="flex flex-wrap gap-1 pt-1">
-                  <span className="font-semibold text-foreground">Tech Stack: </span>
-                  <span className="text-muted-foreground">{proj.technologies.join(', ')}</span>
-                </div>
+                <p className="text-xs font-semibold text-primary">{edu.institution} | {edu.location}</p>
+                {edu.description && <p className="text-xs text-muted-foreground mt-1">{edu.description}</p>}
+                {edu.relevantCoursework && edu.relevantCoursework.length > 0 && (
+                  <p className="text-xs text-muted-foreground pt-1">
+                    <span className="font-semibold text-foreground">Relevant Coursework: </span>
+                    {edu.relevantCoursework.join(', ')}
+                  </p>
+                )}
               </div>
             ))}
           </div>
-        </div>
+        )}
+
+        {/* Key Featured Projects */}
+        {projects.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-display text-xs font-black uppercase tracking-wider text-primary border-b border-border/60 pb-1">
+              Selected Technical Projects
+            </h3>
+            <div className="space-y-4">
+              {projects.slice(0, 4).map((proj) => (
+                <div key={proj.id || proj.slug} className="space-y-1 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <span className="font-bold text-foreground text-sm">{proj.title}</span>
+                    <span className="font-mono text-primary">{proj.category}</span>
+                  </div>
+                  <p className="text-muted-foreground">{proj.description}</p>
+                  {proj.technologies && proj.technologies.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      <span className="font-semibold text-foreground">Tech Stack: </span>
+                      <span className="text-muted-foreground">{proj.technologies.join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Experience & Leadership */}
         {experience.length > 0 && (

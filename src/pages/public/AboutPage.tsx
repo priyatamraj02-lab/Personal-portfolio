@@ -17,29 +17,74 @@ import {
 import { Link } from 'react-router-dom';
 import { apiService } from '../../services/apiService';
 import { Profile } from '../../types/profile';
-import { initialProfile } from '../../data/initialProfile';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { StatsOverview } from '../../components/portfolio/StatsOverview';
 
 export const AboutPage: React.FC = () => {
-  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [projectCount, setProjectCount] = useState(0);
+  const [skillCount, setSkillCount] = useState(0);
+  const [certCount, setCertCount] = useState(0);
+  const [repoCount, setRepoCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const data = await apiService.getProfile();
-        setProfile(data);
+        const [profData, projs, sks, certs, repos] = await Promise.all([
+          apiService.getProfile(),
+          apiService.getProjects(true),
+          apiService.getSkills(true),
+          apiService.getCertifications(),
+          apiService.getGithubRepos()
+        ]);
+        setProfile(profData);
+        setProjectCount(projs.length);
+        setSkillCount(sks.length);
+        setCertCount(certs.length);
+        setRepoCount(repos.length);
       } catch (err) {
-        console.error('Error loading about data', err);
+        console.error('Error loading about data from Firestore', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-8 w-96" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8">
+            <Skeleton className="h-96 w-full rounded-2xl" />
+          </div>
+          <div className="lg:col-span-4">
+            <Skeleton className="h-96 w-full rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+        <Card glass className="p-12 max-w-md mx-auto space-y-4">
+          <User className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h2 className="text-xl font-bold">Profile Unavailable</h2>
+          <p className="text-xs text-muted-foreground">
+            No profile information found in Firestore. Please configure your profile from the Admin Panel.
+          </p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
@@ -50,10 +95,10 @@ export const AboutPage: React.FC = () => {
           Background & Philosophy
         </Badge>
         <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tight">
-          About Priyatam Raj
+          About {profile.name}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground max-w-3xl leading-relaxed">
-          Undergraduate researcher, Machine Learning practitioner, and AI engineer passionate about translating raw mathematical formulations into high-impact software systems.
+          {profile.headline} — passionate about translating raw mathematical formulations into high-impact software systems.
         </p>
       </div>
 
@@ -68,20 +113,28 @@ export const AboutPage: React.FC = () => {
             </h2>
 
             <div className="space-y-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {profile.aboutText?.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
-              ))}
+              {profile.aboutText && profile.aboutText.length > 0 ? (
+                profile.aboutText.map((paragraph, idx) => (
+                  <p key={idx}>{paragraph}</p>
+                ))
+              ) : (
+                <p>{profile.bio}</p>
+              )}
             </div>
 
             <div className="pt-4 border-t border-border flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
-                <MapPin className="w-4 h-4 text-primary" />
-                {profile.location}
-              </div>
-              <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
-                <Mail className="w-4 h-4 text-primary" />
-                {profile.email}
-              </div>
+              {profile.location && (
+                <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  {profile.location}
+                </div>
+              )}
+              {profile.email && (
+                <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+                  <Mail className="w-4 h-4 text-primary" />
+                  {profile.email}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -139,19 +192,27 @@ export const AboutPage: React.FC = () => {
         <div className="lg:col-span-4 space-y-6">
           {/* Profile Card */}
           <Card glass className="p-6 text-center space-y-5">
-            <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-primary/40 shadow-xl">
-              <img
-                src={profile.profileImage}
-                alt={profile.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-primary/40 shadow-xl bg-muted">
+              {profile.profileImage ? (
+                <img
+                  src={profile.profileImage}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                  <BrainCircuit className="w-12 h-12" />
+                </div>
+              )}
             </div>
             <div>
               <h3 className="font-display font-bold text-xl text-foreground">{profile.name}</h3>
               <p className="text-xs text-primary font-semibold mt-0.5">{profile.headline}</p>
-              <p className="text-xs text-muted-foreground mt-2 font-mono">
-                Centurion University (2024–2028)
-              </p>
+              {profile.yearsOfExperience && (
+                <p className="text-xs text-muted-foreground mt-2 font-mono">
+                  {profile.yearsOfExperience}
+                </p>
+              )}
             </div>
 
             <div className="pt-2 border-t border-border flex justify-center gap-3">
@@ -165,35 +226,41 @@ export const AboutPage: React.FC = () => {
 
           {/* Current Learning & Career Goals */}
           <Card glass className="p-6 space-y-4">
-            <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5" />
-                Current Focus
-              </span>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {profile.currentFocus}
-              </p>
-            </div>
+            {profile.currentFocus && (
+              <div className="space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  Current Focus
+                </span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {profile.currentFocus}
+                </p>
+              </div>
+            )}
 
-            <div className="pt-3 border-t border-border space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-500 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                Learning Frontier
-              </span>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {profile.learningFocus}
-              </p>
-            </div>
+            {profile.learningFocus && (
+              <div className="pt-3 border-t border-border space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-cyan-500 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Learning Frontier
+                </span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {profile.learningFocus}
+                </p>
+              </div>
+            )}
 
-            <div className="pt-3 border-t border-border space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5" />
-                Career Goal
-              </span>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {profile.careerGoals}
-              </p>
-            </div>
+            {profile.careerGoals && (
+              <div className="pt-3 border-t border-border space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5" />
+                  Career Goal
+                </span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {profile.careerGoals}
+                </p>
+              </div>
+            )}
           </Card>
         </div>
       </div>
@@ -203,10 +270,10 @@ export const AboutPage: React.FC = () => {
         <StatsOverview
           stats={
             profile.stats || {
-              projectsCompleted: 5,
-              skillsMastered: 29,
-              certificationsEarned: 4,
-              githubRepositories: 12
+              projectsCompleted: projectCount,
+              skillsMastered: skillCount,
+              certificationsEarned: certCount,
+              githubRepositories: repoCount
             }
           }
         />

@@ -9,6 +9,28 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 
+import { Profile } from '../../types/profile';
+
+const fallbackProfile: Profile = {
+  id: 'default',
+  name: 'Priyatam Raj',
+  headline: 'Data Science & AI',
+  bio: '',
+  aboutText: [],
+  currentFocus: '',
+  learningFocus: '',
+  careerGoals: '',
+  location: '',
+  email: '',
+  phone: '',
+  githubUrl: '',
+  linkedinUrl: '',
+  resumeUrl: '',
+  profileImage: '',
+  availability: 'Open to Opportunities',
+  yearsOfExperience: ''
+};
+
 export const AdminResumePage: React.FC = () => {
   const { toggleSidebar } = useOutletContext<{ toggleSidebar: () => void }>();
   const { success, error: toastError } = useToast();
@@ -22,9 +44,11 @@ export const AdminResumePage: React.FC = () => {
     const fetchProfile = async () => {
       try {
         const prof = await apiService.getProfile();
-        setResumeUrl(prof.resumeUrl || '/sample-resume.pdf');
+        if (prof?.resumeUrl) {
+          setResumeUrl(prof.resumeUrl);
+        }
       } catch (err) {
-        console.error('Error fetching resume link', err);
+        console.error('Error fetching resume link from Firestore', err);
       } finally {
         setLoading(false);
       }
@@ -50,7 +74,7 @@ export const AdminResumePage: React.FC = () => {
     try {
       const downloadUrl = await storageService.uploadFile(file, 'resume');
       setResumeUrl(downloadUrl);
-      const prof = await apiService.getProfile();
+      const prof = (await apiService.getProfile()) || fallbackProfile;
       await apiService.updateProfile({ ...prof, resumeUrl: downloadUrl });
       success('Resume Uploaded!', 'New PDF is now active across the website.');
     } catch (err: any) {
@@ -64,9 +88,9 @@ export const AdminResumePage: React.FC = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const prof = await apiService.getProfile();
+      const prof = (await apiService.getProfile()) || fallbackProfile;
       await apiService.updateProfile({ ...prof, resumeUrl: resumeUrl.trim() });
-      success('Resume URL Updated', 'The new resume link is now active.');
+      success('Resume URL Updated', 'The new resume link is now saved in Firestore.');
     } catch (err: any) {
       toastError('Save Error', err?.message);
     } finally {

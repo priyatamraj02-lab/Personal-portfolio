@@ -39,7 +39,6 @@ export const AdminDashboardPage: React.FC = () => {
   });
 
   const [recentMessages, setRecentMessages] = useState<any[]>([]);
-  const [seeding, setSeeding] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -74,23 +73,6 @@ export const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    try {
-      const res = await apiService.seedInitialDataToFirestore();
-      if (res.success) {
-        success('Database Seeded!', res.message);
-        fetchDashboardData();
-      } else {
-        toastError('Seeding Failed', res.message);
-      }
-    } catch (err: any) {
-      toastError('Seed Error', err?.message);
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   const statCards = [
     {
@@ -151,36 +133,24 @@ export const AdminDashboardPage: React.FC = () => {
       />
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl">
-        {/* Database Status Banner & Seeder */}
+        {/* Database Status Banner */}
         <Card glass className="p-6 border-primary/40 bg-gradient-to-r from-primary/5 via-card to-cyan-500/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Database className="w-5 h-5 text-primary" />
               <h2 className="font-display font-bold text-base text-foreground">
-                Database Engine: {isFirebaseConfigured ? 'Connected to Firebase Firestore' : 'Operating in Local Storage Sandbox'}
+                Database Engine: Connected to Firebase Firestore
               </h2>
               {isFirebaseConfigured ? (
                 <Badge variant="success" size="sm">Cloud Live</Badge>
               ) : (
-                <Badge variant="warning" size="sm">Local Sandbox</Badge>
+                <Badge variant="warning" size="sm">Connecting</Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
-              {isFirebaseConfigured
-                ? 'Your website is communicating directly with Firebase Firestore and Firebase Storage. Click "Seed Initial Data" anytime you want to re-populate standard showcase entries.'
-                : 'Firebase credentials are not yet configured in .env. The CMS is safely saving edits to local storage so you can build and test locally!'}
+              Firestore is the single source of truth. Any project, skill, certification, or experience added, edited, or deleted through this panel updates the live public portfolio instantly.
             </p>
           </div>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleSeedDatabase}
-            loading={seeding}
-            icon={<Sparkles className="w-4 h-4" />}
-          >
-            Seed Initial Dataset
-          </Button>
         </Card>
 
         {/* Metric Cards Grid */}

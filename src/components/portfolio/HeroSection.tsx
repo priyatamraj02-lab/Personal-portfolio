@@ -14,12 +14,39 @@ import { Github, Linkedin } from '../ui/BrandIcons';
 import { Profile } from '../../types/profile';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { Skeleton } from '../ui/Skeleton';
 
 interface HeroSectionProps {
-  profile: Profile;
+  profile: Profile | null;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
+  if (!profile) {
+    return (
+      <section className="relative min-h-[85vh] flex items-center justify-center pt-8 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <Skeleton className="h-8 w-44 rounded-full" />
+              <Skeleton className="h-16 w-3/4" />
+              <Skeleton className="h-8 w-1/2" />
+              <Skeleton className="h-20 w-full" />
+              <div className="flex gap-4 pt-4">
+                <Skeleton className="h-12 w-36 rounded-xl" />
+                <Skeleton className="h-12 w-36 rounded-xl" />
+              </div>
+            </div>
+            <div className="lg:col-span-5 flex justify-center">
+              <Skeleton className="w-80 h-96 rounded-3xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const username = profile.name ? profile.name.toLowerCase().replace(/\s+/g, '') : 'priyatam';
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center pt-8 pb-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -33,13 +60,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
             className="lg:col-span-7 space-y-6 text-center lg:text-left"
           >
             {/* Status Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-4" />
-              <span className="text-xs font-semibold text-primary dark:text-indigo-300">
-                {profile.availability}
-              </span>
-            </div>
+            {profile.availability && (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-4" />
+                <span className="text-xs font-semibold text-primary dark:text-indigo-300">
+                  {profile.availability}
+                </span>
+              </div>
+            )}
 
             {/* Main Headings */}
             <div className="space-y-2">
@@ -97,24 +126,28 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
             {/* Social Links & Trust */}
             <div className="flex items-center justify-center lg:justify-start gap-4 pt-4 text-muted-foreground">
               <span className="text-xs uppercase font-mono tracking-widest text-muted-foreground/80">Connect:</span>
-              <a
-                href={profile.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 rounded-xl border border-border bg-card/60 hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-all shadow-sm"
-                aria-label="GitHub Profile"
-              >
-                <Github className="w-4 h-4" />
-              </a>
-              <a
-                href={profile.linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 rounded-xl border border-border bg-card/60 hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-all shadow-sm"
-                aria-label="LinkedIn Profile"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
+              {profile.githubUrl && (
+                <a
+                  href={profile.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl border border-border bg-card/60 hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-all shadow-sm"
+                  aria-label="GitHub Profile"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+              )}
+              {profile.linkedinUrl && (
+                <a
+                  href={profile.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl border border-border bg-card/60 hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-all shadow-sm"
+                  aria-label="LinkedIn Profile"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              )}
             </div>
           </motion.div>
 
@@ -132,17 +165,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
               <div className="relative rounded-3xl border border-border bg-card/90 backdrop-blur-xl p-5 shadow-2xl space-y-4">
                 {/* Profile Image */}
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted border border-border/80">
-                  <img
-                    src={profile.profileImage}
-                    alt={profile.name}
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                  />
+                  {profile.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt={profile.name}
+                      className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                      <BrainCircuit className="w-16 h-16" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
                     <span className="text-xs font-mono font-bold tracking-widest text-cyan-300 uppercase">
-                      Centurion University (2024–2028)
+                      {profile.yearsOfExperience || profile.location || 'Data Science & AI'}
                     </span>
                     <span className="text-sm font-semibold">
-                      B.Tech Computer Science & Engineering
+                      {profile.headline || profile.name}
                     </span>
                   </div>
                 </div>
@@ -152,7 +191,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
                   <div className="flex items-center justify-between text-slate-500 border-b border-slate-800 pb-1.5 mb-1.5">
                     <span className="flex items-center gap-1.5 text-primary text-[11px] font-bold">
                       <Terminal className="w-3 h-3" />
-                      priyatam@ai-core:~$
+                      {username}@ai-core:~$
                     </span>
                     <span className="text-[10px] text-emerald-400">● LIVE</span>
                   </div>
@@ -160,7 +199,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
                     <span className="text-purple-400">$</span> python -m model.evaluate
                   </p>
                   <p className="text-emerald-400 text-[11px]">
-                    ✓ YOLOv8 & RAG Engines: Active
+                    ✓ AI & ML Pipelines: Active
                   </p>
                 </div>
               </div>

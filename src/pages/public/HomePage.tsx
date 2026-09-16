@@ -17,7 +17,8 @@ import { apiService } from '../../services/apiService';
 import { Profile } from '../../types/profile';
 import { Project } from '../../types/project';
 import { Skill, SkillCategory } from '../../types/skill';
-import { initialProfile } from '../../data/initialProfile';
+import { Education } from '../../types/education';
+import { Achievement } from '../../types/achievement';
 import { HeroSection } from '../../components/portfolio/HeroSection';
 import { StatsOverview } from '../../components/portfolio/StatsOverview';
 import { ProjectCard } from '../../components/portfolio/ProjectCard';
@@ -29,9 +30,13 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { useToast } from '../../context/ToastContext';
 
 export const HomePage: React.FC = () => {
-  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [certCount, setCertCount] = useState(0);
+  const [repoCount, setRepoCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const { success } = useToast();
@@ -39,16 +44,24 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profData, projData, skillData] = await Promise.all([
+        const [profData, projData, skillData, eduData, achData, certData, repoData] = await Promise.all([
           apiService.getProfile(),
           apiService.getProjects(true),
-          apiService.getSkills(true)
+          apiService.getSkills(true),
+          apiService.getEducation(),
+          apiService.getAchievements(),
+          apiService.getCertifications(),
+          apiService.getGithubRepos()
         ]);
         setProfile(profData);
         setProjects(projData);
         setSkills(skillData);
+        setEducation(eduData);
+        setAchievements(achData);
+        setCertCount(certData.length);
+        setRepoCount(repoData.length);
       } catch (err) {
-        console.error('Error fetching homepage data', err);
+        console.error('Error fetching homepage data from Firestore', err);
       } finally {
         setLoading(false);
       }
@@ -57,6 +70,7 @@ export const HomePage: React.FC = () => {
   }, []);
 
   const handleCopyEmail = () => {
+    if (!profile?.email) return;
     navigator.clipboard.writeText(profile.email);
     setCopiedEmail(true);
     success('Email copied to clipboard!', profile.email);
@@ -72,8 +86,12 @@ export const HomePage: React.FC = () => {
     'Generative AI',
     'Deep Learning',
     'Machine Learning',
-    'Data Science'
+    'Data Science',
+    'Programming',
+    'Tools'
   ];
+
+  const primaryEducation = education.length > 0 ? education[0] : null;
 
   return (
     <div className="space-y-24 pb-20">
@@ -84,11 +102,11 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <StatsOverview
           stats={
-            profile.stats || {
-              projectsCompleted: projects.length || 5,
-              skillsMastered: skills.length || 29,
-              certificationsEarned: 4,
-              githubRepositories: 12
+            profile?.stats || {
+              projectsCompleted: projects.length,
+              skillsMastered: skills.length,
+              certificationsEarned: certCount,
+              githubRepositories: repoCount
             }
           }
         />
@@ -123,12 +141,16 @@ export const HomePage: React.FC = () => {
             <Skeleton className="h-80 w-full" />
             <Skeleton className="h-80 w-full" />
           </div>
-        ) : (
+        ) : featuredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredProjects.map((project) => (
               <ProjectCard key={project.id || project.slug} project={project} />
             ))}
           </div>
+        ) : (
+          <Card glass className="p-8 text-center text-xs text-muted-foreground">
+            No featured projects currently published in Firestore. Add projects via the Admin Panel.
+          </Card>
         )}
       </section>
 
@@ -155,74 +177,83 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {skillCategories.map((cat) => {
-            const catSkills = skills.filter((s) => s.category === cat);
-            if (catSkills.length === 0) return null;
-            return (
-              <SkillCategoryCard
-                key={cat}
-                category={cat}
-                skills={catSkills.slice(0, 6)}
-              />
-            );
-          })}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        ) : skills.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {skillCategories.map((cat) => {
+              const catSkills = skills.filter((s) => s.category === cat);
+              if (catSkills.length === 0) return null;
+              return (
+                <SkillCategoryCard
+                  key={cat}
+                  category={cat}
+                  skills={catSkills.slice(0, 6)}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <Card glass className="p-8 text-center text-xs text-muted-foreground">
+            No skills currently saved in Firestore. Add skills via the Admin Panel.
+          </Card>
+        )}
       </section>
 
       {/* 5. Education & Philosophy Teaser */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Card glass className="p-8 sm:p-10 border-primary/30 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-            <div className="lg:col-span-8 space-y-4">
-              <Badge variant="ai" size="md">
-                <BrainCircuit className="w-3.5 h-3.5 text-primary" />
-                Undergraduate Journey (2024–2028)
-              </Badge>
-              <h2 className="font-display text-2xl sm:text-3xl font-black text-foreground">
-                Centurion University of Technology and Management
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Pursuing B.Tech in Computer Science & Engineering with a focused specialization in Data Science and Artificial Intelligence. Bridging mathematical rigor with hands-on systems programming and cloud-native model deployment.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-2">
-                <Link to="/education">
-                  <Button variant="primary" size="sm">
-                    View Coursework & Milestones
-                  </Button>
-                </Link>
-                <Link to="/about">
-                  <Button variant="outline" size="sm">
-                    Read My Story
-                  </Button>
-                </Link>
+      {primaryEducation && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card glass className="p-8 sm:p-10 border-primary/30 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+              <div className="lg:col-span-8 space-y-4">
+                <Badge variant="ai" size="md">
+                  <BrainCircuit className="w-3.5 h-3.5 text-primary" />
+                  Academic Journey ({primaryEducation.startYear}–{primaryEducation.endYear})
+                </Badge>
+                <h2 className="font-display text-2xl sm:text-3xl font-black text-foreground">
+                  {primaryEducation.institution}
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  {primaryEducation.description || `Pursuing ${primaryEducation.degree} with a focused specialization in Data Science and Artificial Intelligence.`}
+                </p>
+                <div className="flex flex-wrap gap-4 pt-2">
+                  <Link to="/education">
+                    <Button variant="primary" size="sm">
+                      View Coursework & Milestones
+                    </Button>
+                  </Link>
+                  <Link to="/about">
+                    <Button variant="outline" size="sm">
+                      Read My Story
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            </div>
 
-            <div className="lg:col-span-4 p-5 rounded-2xl bg-card/80 border border-border/80 space-y-3 shadow-lg">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary block">
-                Quick Highlights
-              </span>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>1st Place Smart Odisha Hackathon 2024</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>Kaggle 3x Notebooks Medalist</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>DeepLearning.AI Machine Learning Certified</span>
-                </li>
-              </ul>
+              {achievements.length > 0 && (
+                <div className="lg:col-span-4 p-5 rounded-2xl bg-card/80 border border-border/80 space-y-3 shadow-lg">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary block">
+                    Quick Highlights
+                  </span>
+                  <ul className="space-y-2 text-xs text-muted-foreground">
+                    {achievements.slice(0, 3).map((ach) => (
+                      <li key={ach.id || ach.title} className="flex items-start gap-2">
+                        <span className="text-emerald-500 font-bold">✓</span>
+                        <span>{ach.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          </div>
-        </Card>
-      </section>
+          </Card>
+        </section>
+      )}
 
       {/* 6. Call to Action / Get in Touch */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -235,7 +266,8 @@ export const HomePage: React.FC = () => {
               Interested in Building Something Intelligent Together?
             </h2>
             <p className="text-sm text-muted-foreground">
-              I am currently open to Data Science, Machine Learning, Deep Learning, and AI Engineering internships, full-time roles, and research opportunities.
+              {profile?.availability ? `Currently ${profile.availability.toLowerCase()}. ` : ''}
+              Open to Data Science, Machine Learning, Deep Learning, and AI Engineering internships, full-time roles, and research opportunities.
             </p>
           </div>
 
@@ -245,14 +277,16 @@ export const HomePage: React.FC = () => {
                 Get in Touch
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={handleCopyEmail}
-              icon={copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            >
-              {copiedEmail ? 'Email Copied!' : 'Copy Email Address'}
-            </Button>
+            {profile?.email && (
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleCopyEmail}
+                icon={copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              >
+                {copiedEmail ? 'Email Copied!' : 'Copy Email Address'}
+              </Button>
+            )}
           </div>
         </div>
       </section>
