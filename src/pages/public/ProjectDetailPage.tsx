@@ -14,7 +14,6 @@ import {
   AlertTriangle, 
   Lightbulb, 
   TrendingUp, 
-  Images, 
   CheckCircle2,
   Workflow
 } from 'lucide-react';
@@ -25,7 +24,6 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { CodeBlock } from '../../components/ui/CodeBlock';
-import { Lightbox } from '../../components/ui/Lightbox';
 import { Skeleton } from '../../components/ui/Skeleton';
 
 export const ProjectDetailPage: React.FC = () => {
@@ -33,10 +31,6 @@ export const ProjectDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Lightbox state
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -77,16 +71,6 @@ export const ProjectDetailPage: React.FC = () => {
     );
   }
 
-  const allImages = [
-    project.thumbnail,
-    ...(project.galleryImages || [])
-  ].filter(Boolean);
-
-  const openLightbox = (index: number) => {
-    setActiveImageIndex(index);
-    setLightboxOpen(true);
-  };
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
       {/* Top Back Navigation Bar */}
@@ -114,24 +98,8 @@ export const ProjectDetailPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Hero Thumbnail Banner & Action Buttons */}
-      <div className="space-y-6">
-        <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden border border-border/80 shadow-2xl bg-muted group cursor-pointer" onClick={() => openLightbox(0)}>
-          <img
-            src={project.thumbnail}
-            alt={project.title}
-            className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-mono font-semibold flex items-center gap-2">
-              <Images className="w-4 h-4" />
-              Click to Open Fullscreen Gallery
-            </span>
-          </div>
-        </div>
-
-        {/* Action Buttons Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 border border-border/60">
+      {/* Action Buttons Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 border border-border/60">
           {/* Tech Badges */}
           <div className="flex flex-wrap gap-1.5">
             {project.technologies.map((tech) => (
@@ -161,7 +129,6 @@ export const ProjectDetailPage: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
 
       {/* Key Evaluation Metrics Grid */}
       {project.evaluationMetrics && project.evaluationMetrics.length > 0 && (
@@ -332,40 +299,6 @@ export const ProjectDetailPage: React.FC = () => {
         </section>
       )}
 
-      {/* Image Gallery */}
-      {project.galleryImages && project.galleryImages.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold text-xl text-foreground flex items-center gap-2">
-              <Images className="w-5 h-5 text-primary" />
-              Screenshots & Visuals
-            </h2>
-            <span className="text-xs text-muted-foreground font-mono">
-              {project.galleryImages.length} Screenshots
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {project.galleryImages.map((imgUrl, idx) => (
-              <div
-                key={idx}
-                onClick={() => openLightbox(idx + 1)}
-                className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted border border-border/60 group cursor-pointer"
-              >
-                <img
-                  src={imgUrl}
-                  alt={`Screenshot ${idx + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-white text-xs font-mono font-semibold">View</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Challenges & Solutions */}
       {project.challenges && project.challenges.length > 0 && (
         <section className="space-y-4">
@@ -438,15 +371,6 @@ export const ProjectDetailPage: React.FC = () => {
           </Button>
         </Link>
       </div>
-
-      {/* Fullscreen Lightbox Modal */}
-      <Lightbox
-        images={allImages}
-        currentIndex={activeImageIndex}
-        isOpen={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-        onNavigate={(newIdx) => setActiveImageIndex(newIdx)}
-      />
     </div>
   );
 };

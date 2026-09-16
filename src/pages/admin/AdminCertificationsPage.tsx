@@ -10,7 +10,6 @@ import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { ImageUpload } from '../../components/admin/ImageUpload';
 
 const emptyCert: Omit<Certification, 'id'> = {
   name: '',
@@ -229,11 +228,11 @@ export const AdminCertificationsPage: React.FC = () => {
             />
           </div>
 
-          <ImageUpload
-            label="Certificate Badge / Image"
-            value={formData.certificateImage}
-            onChange={(url) => setFormData({ ...formData, certificateImage: url })}
-            folder="certificates"
+          <Input
+            label="Certificate Badge / Image URL (Optional)"
+            value={formData.certificateImage || ''}
+            onChange={(e) => setFormData({ ...formData, certificateImage: e.target.value })}
+            placeholder="https://... or /assets/..."
           />
 
           <Input

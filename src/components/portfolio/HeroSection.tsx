@@ -165,17 +165,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ profile }) => {
               <div className="relative rounded-3xl border border-border bg-card/90 backdrop-blur-xl p-5 shadow-2xl space-y-4">
                 {/* Profile Image */}
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted border border-border/80">
-                  {profile.profileImage ? (
-                    <img
-                      src={profile.profileImage}
-                      alt={profile.name}
-                      className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
-                      <BrainCircuit className="w-16 h-16" />
-                    </div>
-                  )}
+                  <img
+                    src="/assets/profile.jpg"
+                    alt={profile.name}
+                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
                     <span className="text-xs font-mono font-bold tracking-widest text-cyan-300 uppercase">
                       {profile.yearsOfExperience || profile.location || 'Data Science & AI'}

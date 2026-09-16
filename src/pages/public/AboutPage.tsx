@@ -193,17 +193,11 @@ export const AboutPage: React.FC = () => {
           {/* Profile Card */}
           <Card glass className="p-6 text-center space-y-5">
             <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-primary/40 shadow-xl bg-muted">
-              {profile.profileImage ? (
-                <img
-                  src={profile.profileImage}
-                  alt={profile.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
-                  <BrainCircuit className="w-12 h-12" />
-                </div>
-              )}
+              <img
+                src="/assets/profile.jpg"
+                alt={profile.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <h3 className="font-display font-bold text-xl text-foreground">{profile.name}</h3>

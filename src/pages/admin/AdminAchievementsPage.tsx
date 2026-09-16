@@ -13,7 +13,6 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { ImageUpload } from '../../components/admin/ImageUpload';
 
 const emptyAch: Omit<Achievement, 'id'> = {
   title: '',
@@ -228,11 +227,11 @@ export const AdminAchievementsPage: React.FC = () => {
             placeholder="Built real-time AI vision prototype..."
           />
 
-          <ImageUpload
-            label="Achievement Image / Certificate"
-            value={formData.imageUrl}
-            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-            folder="achievements"
+          <Input
+            label="Achievement Image URL (Optional)"
+            value={formData.imageUrl || ''}
+            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+            placeholder="https://... or /assets/..."
           />
 
           <Input

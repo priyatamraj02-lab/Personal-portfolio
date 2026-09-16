@@ -6,14 +6,6 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    function isImage() {
-      return request.resource.contentType.matches('image/.*');
-    }
-
-    function isPdf() {
-      return request.resource.contentType == 'application/pdf';
-    }
-
     function isUnderLimit(maxSizeMb) {
       return request.resource.size < maxSizeMb * 1024 * 1024;
     }
@@ -23,26 +15,40 @@ service firebase.storage {
       allow read: if true;
     }
 
-    // Authenticated admin can upload images (under 5MB)
+    // Authenticated admin can upload profile images (under 10MB)
     match /profile/{fileName} {
-      allow write: if isAuthenticated() && isImage() && isUnderLimit(5);
+      allow write: if isAuthenticated() && isUnderLimit(10);
     }
 
+    // Authenticated admin can upload project thumbnails & screenshots (under 15MB)
     match /projects/{fileName} {
-      allow write: if isAuthenticated() && isImage() && isUnderLimit(8);
+      allow write: if isAuthenticated() && isUnderLimit(15);
     }
 
+    // Authenticated admin can upload portfolio media (under 15MB)
+    match /portfolio/{fileName} {
+      allow write: if isAuthenticated() && isUnderLimit(15);
+    }
+
+    // Authenticated admin can upload certification images (under 10MB)
     match /certificates/{fileName} {
-      allow write: if isAuthenticated() && isImage() && isUnderLimit(5);
+      allow write: if isAuthenticated() && isUnderLimit(10);
     }
 
+    // Authenticated admin can upload achievement images (under 10MB)
     match /achievements/{fileName} {
-      allow write: if isAuthenticated() && isImage() && isUnderLimit(5);
+      allow write: if isAuthenticated() && isUnderLimit(10);
     }
 
-    // Resume PDF uploads (under 10MB)
+    // Authenticated admin can upload resume PDF (under 15MB)
     match /resume/{fileName} {
-      allow write: if isAuthenticated() && isPdf() && isUnderLimit(10);
+      allow write: if isAuthenticated() && isUnderLimit(15);
+    }
+
+    // General uploads folder
+    match /uploads/{fileName} {
+      allow write: if isAuthenticated() && isUnderLimit(15);
     }
   }
 }
+

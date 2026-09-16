@@ -26,7 +26,6 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { ImageUpload } from '../../components/admin/ImageUpload';
 
 const emptyProject: Omit<Project, 'id'> = {
   title: '',
@@ -243,22 +242,15 @@ export const AdminProjectsPage: React.FC = () => {
               <tbody className="divide-y divide-border/60">
                 {projects.map((proj) => (
                   <tr key={proj.id || proj.slug} className="hover:bg-muted/30 transition-colors">
-                    {/* Thumbnail & Title */}
+                    {/* Title & Slug */}
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={proj.thumbnail}
-                          alt={proj.title}
-                          className="w-12 h-9 rounded-lg object-cover bg-muted shrink-0 border border-border/60"
-                        />
-                        <div className="min-w-0">
-                          <span className="font-bold text-foreground block truncate">
-                            {proj.title}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground font-mono truncate block">
-                            /{proj.slug}
-                          </span>
-                        </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-foreground block truncate">
+                          {proj.title}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-mono truncate block">
+                          /{proj.slug}
+                        </span>
                       </div>
                     </td>
 
@@ -404,18 +396,11 @@ export const AdminProjectsPage: React.FC = () => {
             />
           </div>
 
-          {/* Media & Links */}
+          {/* Links & Repositories */}
           <div className="space-y-4">
             <h4 className="text-xs font-bold uppercase tracking-wider text-primary border-b border-border/60 pb-1">
-              Media & Links
+              Links & Repositories
             </h4>
-
-            <ImageUpload
-              label="Project Thumbnail"
-              value={formData.thumbnail}
-              onChange={(url) => setFormData({ ...formData, thumbnail: url })}
-              folder="projects"
-            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input

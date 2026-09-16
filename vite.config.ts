@@ -22,7 +22,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-framer': ['framer-motion'],
           'vendor-icons': ['lucide-react'],
-          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
         },
       },
     },

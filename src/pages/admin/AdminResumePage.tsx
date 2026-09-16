@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { FileText, Upload, Save, FileDown, ExternalLink, Loader2, CheckCircle2 } from 'lucide-react';
+import { FileText, Save, ExternalLink } from 'lucide-react';
 import { apiService } from '../../services/apiService';
-import { storageService } from '../../services/storageService';
 import { useToast } from '../../context/ToastContext';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { Button } from '../../components/ui/Button';
@@ -37,7 +36,6 @@ export const AdminResumePage: React.FC = () => {
 
   const [resumeUrl, setResumeUrl] = useState('/sample-resume.pdf');
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -55,34 +53,6 @@ export const AdminResumePage: React.FC = () => {
     };
     fetchProfile();
   }, []);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      toastError('Invalid File Type', 'Please upload a valid PDF document.');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toastError('File Too Large', 'Resume PDF must be under 10MB.');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const downloadUrl = await storageService.uploadFile(file, 'resume');
-      setResumeUrl(downloadUrl);
-      const prof = (await apiService.getProfile()) || fallbackProfile;
-      await apiService.updateProfile({ ...prof, resumeUrl: downloadUrl });
-      success('Resume Uploaded!', 'New PDF is now active across the website.');
-    } catch (err: any) {
-      toastError('Upload Failed', err?.message);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSaveUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,56 +93,17 @@ export const AdminResumePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Upload Area */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-foreground/80 uppercase tracking-wide">
-              Upload New PDF Document
-            </label>
-            <div className="relative">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                id="resume-upload"
-                className="hidden"
-              />
-              <label
-                htmlFor="resume-upload"
-                className={`flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-border/80 bg-card/60 hover:bg-muted/60 text-center cursor-pointer transition-colors ${
-                  uploading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
-                    <span className="font-semibold text-sm">Uploading and deploying resume...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-primary mb-2" />
-                    <span className="font-bold text-sm text-foreground">
-                      Click to upload new PDF resume
-                    </span>
-                    <span className="text-xs text-muted-foreground mt-1">
-                      Max file size: 10MB
-                    </span>
-                  </>
-                )}
-              </label>
-            </div>
-          </div>
-
-          {/* Manual URL Input */}
-          <form onSubmit={handleSaveUrl} className="space-y-4 pt-4 border-t border-border">
+          {/* Resume Link Input Form */}
+          <form onSubmit={handleSaveUrl} className="space-y-4">
             <Input
-              label="Or specify direct URL / storage link"
+              label="Resume PDF Link / File Path"
               value={resumeUrl}
               onChange={(e) => setResumeUrl(e.target.value)}
-              placeholder="https://firebasestorage.googleapis.com/... or /sample-resume.pdf"
+              placeholder="/sample-resume.pdf or https://..."
+              required
             />
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-2">
               <a
                 href={resumeUrl}
                 target="_blank"

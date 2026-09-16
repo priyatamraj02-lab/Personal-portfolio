@@ -10,7 +10,6 @@ import { Textarea } from '../../components/ui/Textarea';
 import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { ImageUpload } from '../../components/admin/ImageUpload';
 
 const emptyProfile: Profile = {
   id: 'default',
@@ -90,12 +89,22 @@ export const AdminProfilePage: React.FC = () => {
               Primary Identity
             </h2>
 
-            <ImageUpload
-              label="Profile Photo"
-              value={profile.profileImage}
-              onChange={(url) => setProfile({ ...profile, profileImage: url })}
-              folder="profile"
-            />
+            {/* Static Profile Image Notice */}
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-primary/5 border border-primary/20">
+              <img
+                src="/assets/profile.jpg"
+                alt="Static Profile"
+                className="w-16 h-16 rounded-xl object-cover border border-border shadow-sm shrink-0"
+              />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">
+                  Profile image is managed as a static project asset.
+                </p>
+                <p className="text-xs text-muted-foreground font-mono">
+                  Asset location: public/assets/profile.jpg
+                </p>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
