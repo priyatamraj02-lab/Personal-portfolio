@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
+
 Disallow: /admin/
 Disallow: /admin/*
 
-Sitemap: https://priyatamraj.dev/sitemap.xml
+Sitemap: https://personal-portfolio-zeta-six-14.vercel.app/sitemap.xml
