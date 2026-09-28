@@ -78,7 +78,11 @@ export const apiService = {
     if (!db) return null;
     try {
       const projectsRef = collection(db, 'projects');
-      const q = query(projectsRef, where('slug', '==', slug));
+      const q = query(
+  projectsRef,
+  where('slug', '==', slug),
+  where('published', '==', true)
+);
       const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
