@@ -26,31 +26,25 @@
   </url>
 
   <url>
-    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/classroom-activity-monitoring-system</loc>
+    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/activity-detection</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/genai-content-co-pilot</loc>
+    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/genai-content-co-pilot-for-post-article-and-comment-drafting-along-with-engagement-rate-prediction</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/intelligent-document-research-assistant</loc>
+    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/intelligent-document-research-assistant-rag-based-pdf-question-answering-system</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/house-price-prediction</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/disease-prediction-system</loc>
+    <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/house-price-prediction-system</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -90,5 +84,23 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <url>
+  <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/ai-based-wound-detection-segmentation-and-healing-assessment-system</loc>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/adaptive-self-healing-ai-computer</loc>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+
+<url>
+  <loc>https://personal-portfolio-zeta-six-14.vercel.app/projects/minigpt-small-language-model-from-scratch</loc>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
 
 </urlset>
